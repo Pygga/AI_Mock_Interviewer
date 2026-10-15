@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 AI Mock Interviewer — Агент технического собеседования (ДЗ 01).
-Версия 1.1: Исправлено зацикливание, добавлена поддержка нескольких вызовов $call$
-и корректное ожидание ответа кандидата после каждого вопроса.
+Версия 1.2: Добавлен умный многострочный ввод (автоперехват вставки кода и режим :code).
 """
 
 import os
 import sys
 import re
 import json
+import select
 import urllib.request
 import urllib.error
 import datetime
@@ -67,7 +67,6 @@ CANDIDATE_SCORES = {}
 def tool_get_question(topic: str, level: str) -> str:
     topic = topic.strip().lower()
     level = level.strip().lower()
-    # Нормализация уровня
     if level in ["intermediate", "mid"]:
         level = "middle"
     if level in ["beginner", "jun"]:
@@ -77,7 +76,6 @@ def tool_get_question(topic: str, level: str) -> str:
     if key in QUESTIONS_DB:
         return QUESTIONS_DB[key]
     
-    # Поиск хотя бы по теме
     for (t, l), q in QUESTIONS_DB.items():
         if t == topic:
             return q
@@ -139,13 +137,9 @@ $call$finish_interview()$call$
 """
 
 # ---------------------------------------------------------------------------
-# 4. ОБРАБОТЧИК ВЫЗОВОВ
+# 4. ОБРАБОТЧИК ВЫЗОВОВ TOOLS
 # ---------------------------------------------------------------------------
 def parse_and_execute_tools(text: str):
-    """
-    Находит ВСЕ вызовы $call$...$call$ в тексте ответа, выполняет их
-    и возвращает список результатов и флаг необходимости ожидания пользователя.
-    """
     calls = re.findall(r"\$call\$(.*?)\$call\$", text)
     if not calls:
         return [], None, False
@@ -192,20 +186,78 @@ def parse_and_execute_tools(text: str):
 
 
 def clean_display_text(text: str) -> str:
-    """Удаляет технические маркеры $call$...$call$ из текста для чистого отображения кандидату."""
     cleaned = re.sub(r"\$call\$.*?\$call\$", "", text).strip()
     return cleaned
 
 
 # ---------------------------------------------------------------------------
-# 5. ОСНОВНОЙ REPL ЦИКЛ
+# 5. УМНЫЙ ВВОД (АВТОПЕРЕХВАТ ВСТАВКИ И РЕЖИМ :code)
+# ---------------------------------------------------------------------------
+def get_user_input() -> str:
+    """
+    Считывает ввод пользователя:
+    1. Автоматически перехватывает вставку больших кусков кода/текста с переводами строк,
+       не сбрасывая каждую строчку в отправку.
+    2. Поддерживает явный режим :code (или ```) для ручного ввода с завершением через :send или двойной Enter.
+    """
+    print("\n\033[1;32mКандидат > \033[0m", end="", flush=True)
+    try:
+        first_line = sys.stdin.readline()
+    except (KeyboardInterrupt, EOFError):
+        return "выход"
+
+    if not first_line:
+        return "выход"
+
+    # Режим ручного ввода кода по специальной команде
+    if first_line.strip() in [":code", ":paste", "```"]:
+        print("\033[0;33m  📝 [Режим многострочного ввода. Вставьте код и введите :send или нажмите 2 раза Enter]:\033[0m")
+        code_lines = []
+        empty_count = 0
+        while True:
+            try:
+                line = sys.stdin.readline()
+            except (KeyboardInterrupt, EOFError):
+                break
+            if not line:
+                break
+            if line.strip() in [":send", ":end", "```"]:
+                break
+            if line.strip() == "":
+                empty_count += 1
+                if empty_count >= 2:
+                    break
+            else:
+                empty_count = 0
+            code_lines.append(line)
+        return "".join(code_lines).strip()
+
+    # Автоперехват вставки из буфера обмена (если в буфере терминала уже ждут следующие строки)
+    lines = [first_line]
+    while True:
+        # Проверяем, есть ли готовые байты во входном потоке stdin за окно 50 миллисекунд
+        rlist, _, _ = select.select([sys.stdin], [], [], 0.05)
+        if rlist:
+            next_line = sys.stdin.readline()
+            if not next_line:
+                break
+            lines.append(next_line)
+        else:
+            break
+
+    return "".join(lines).strip()
+
+
+# ---------------------------------------------------------------------------
+# 6. ОСНОВНОЙ REPL ЦИКЛ
 # ---------------------------------------------------------------------------
 def main():
     print("=" * 65)
-    print("  AI Mock Interviewer — Терминал Собеседования (v1.1)")
+    print("  AI Mock Interviewer — Терминал Собеседования (v1.2)")
     print(f"  API:        {API_URL}")
     print(f"  Лог-файл:   {LOG_FILENAME}")
     print("  Выход:      'выход', 'exit', 'конец', 'quit', 'завершить'")
+    print("  Ввод кода:  вставьте код напрямую ИЛИ введите ':code' для блока")
     print("=" * 65)
 
     write_log(f"=== ЗАПУСК СЕССИИ: {datetime.datetime.now()} ===")
@@ -217,11 +269,7 @@ def main():
     ]
 
     while True:
-        try:
-            user_input = input("\n\033[1;32mКандидат > \033[0m").strip()
-        except (KeyboardInterrupt, EOFError):
-            print("\nСессия прервана.")
-            break
+        user_input = get_user_input()
 
         if not user_input:
             continue
@@ -232,7 +280,7 @@ def main():
             break
 
         messages.append({"role": "user", "content": user_input})
-        write_log(f"\nКандидат: {user_input}")
+        write_log(f"\nКандидат:\n{user_input}\n")
 
         # Запрос к LLM
         try:
@@ -245,19 +293,15 @@ def main():
             print(f"\n\033[1;31m[Ошибка генерации]: {err}\033[0m")
             break
 
-        # Добавляем сырой ответ в историю сообщений
         messages.append({"role": "assistant", "content": assistant_raw})
         write_log(f"Интервьюер (сырой): {assistant_raw}")
 
-        # Парсим вызовы инструментов
         tool_results, question_info, is_finished = parse_and_execute_tools(assistant_raw)
 
-        # Выводим текстовую часть реплики интервьюера (без тегов $call$)
         spoken_text = clean_display_text(assistant_raw)
         if spoken_text:
             print(f"\033[1;36mИнтервьюер >\033[0m {spoken_text}")
 
-        # Показываем статус выполнения инструментов
         for res in tool_results:
             if "Оценка" in res:
                 print(f"\033[0;33m  📊 [{res}]\033[0m")
@@ -266,12 +310,10 @@ def main():
                 print(f"\n\033[1;32m🏆 [{res}]\033[0m")
                 write_log(f"Система: {res}")
 
-        # Если был запрошен вопрос — озвучиваем его кандидату
         if question_info:
             topic, q_text = question_info
             print(f"\n\033[1;37m❓ [Вопрос по {topic.upper()}]: {q_text}\033[0m")
             write_log(f"Вопрос кандидату: {q_text}")
-            # Добавляем системное примечание в контекст, чтобы модель знала, какой вопрос был задан
             messages.append({
                 "role": "system",
                 "content": f"[ИНФОРМАЦИЯ]: Кандидату задан вопрос: '{q_text}'. Жди его ответа и оцени его."

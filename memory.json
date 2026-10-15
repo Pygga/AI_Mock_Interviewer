@@ -1,0 +1,34 @@
+{
+  "candidate": {
+    "name": "Виктор",
+    "target_role": "Python Developer (Middle)",
+    "skills": ["Python", "SQL", "Алгоритмы", "FastAPI"]
+  },
+  "completed_questions": {},
+  "pending_questions": [
+    {
+      "id": "gil_threading",
+      "topic": "Python Core",
+      "question": "Как устроен GIL (Global Interpreter Lock) в CPython? В каких задачах он становится узким местом, а когда не влияет на производительность?"
+    },
+    {
+      "id": "sql_indexes_where_having",
+      "topic": "Базы данных / SQL",
+      "question": "В чем разница между WHERE и HAVING в SQL? Почему поиск по условию LIKE '%abc' не может эффективно использовать B-Tree индекс?"
+    },
+    {
+      "id": "bracket_balance_algo",
+      "topic": "Алгоритмы и структуры данных",
+      "question": "Опишите алгоритм проверки сбалансированности скобок в строке '()[]{}'. Каковы его временная и пространственная сложность?"
+    },
+    {
+      "id": "orm_n_plus_one",
+      "topic": "Архитектура и ORM",
+      "question": "Что такое проблема N+1 запросов при работе с ORM и какими методами (например, в Django ORM или SQLAlchemy) она решается?"
+    }
+  ],
+  "session_meta": {
+    "total_questions": 4,
+    "last_updated": null
+  }
+}
