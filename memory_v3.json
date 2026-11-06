@@ -1,0 +1,75 @@
+{
+  "candidate": {
+    "name": "Виктор",
+    "target_role": "Python Developer",
+    "current_level": "middle",
+    "skills": ["Python", "SQL", "Алгоритмы", "FastAPI", "LangChain"]
+  },
+  "memory_layers": {
+    "window_k": 2,
+    "window_buffer": [],
+    "dialogue_summary": "Собеседование только начинается. Кандидат Виктор претендует на позицию Python Developer (стартовый уровень: middle)."
+  },
+  "completed_questions": {},
+  "question_bank": {
+    "junior": [
+      {
+        "id": "jun_list_vs_tuple",
+        "topic": "Python База",
+        "level": "junior",
+        "question": "В чем ключевые отличия списков (list) от кортежей (tuple) в Python? Может ли кортеж быть ключом словаря dict?",
+        "hint": "Подумайте про изменяемость (mutability), хешируемость (hashable) и объем занимаемой памяти."
+      },
+      {
+        "id": "jun_sql_joins",
+        "topic": "SQL База",
+        "level": "junior",
+        "question": "Чем отличается INNER JOIN от LEFT JOIN в SQL? Приведите пример, когда LEFT JOIN вернет NULL.",
+        "hint": "Вспомните, что происходит со строками левой таблицы, для которых не нашлось совпадений в правой."
+      }
+    ],
+    "middle": [
+      {
+        "id": "mid_gil_threading",
+        "topic": "Python Core",
+        "level": "middle",
+        "question": "Как устроен GIL (Global Interpreter Lock) в CPython? В каких задачах он становится узким местом, а когда не мешает?",
+        "hint": "Разделите задачи на две категории: вычисления на процессоре (CPU-bound) и ожидание ввода-вывода (I/O-bound)."
+      },
+      {
+        "id": "mid_sql_indexes",
+        "topic": "Базы данных / SQL",
+        "level": "middle",
+        "question": "В чем разница между WHERE и HAVING в SQL? Почему условие LIKE '%abc' не может эффективно использовать B-Tree индекс?",
+        "hint": "WHERE фильтрует строки до группировки GROUP BY, а B-Tree индекс упорядочивает строки слева направо по префиксу."
+      },
+      {
+        "id": "mid_decorators_code",
+        "topic": "Python Практика (Код)",
+        "level": "middle",
+        "question": "Напишите небольшой декоратор или функцию на Python для замера времени выполнения функции (или опишите ее структуру с сохранением метаданных через functools.wraps).",
+        "hint": "Используйте time.perf_counter(), вложенную функцию wrapper(*args, **kwargs) и @functools.wraps(func)."
+      }
+    ],
+    "senior": [
+      {
+        "id": "sen_asyncio_internals",
+        "topic": "Архитектура / Asyncio",
+        "level": "senior",
+        "question": "Как внутри работает Event Loop в asyncio? Что произойдет, если внутри async-корутины вызвать блокирующий CPU-код или синхронный requests.get(), и как это правильно изолировать?",
+        "hint": "Подумайте о кооперативной многозадачности, системных вызовах epoll/kqueue и пуле потоков loop.run_in_executor / asyncio.to_thread."
+      },
+      {
+        "id": "sen_distributed_tx",
+        "topic": "Highload & Микросервисы",
+        "level": "senior",
+        "question": "Как обеспечить консистентность данных между двумя микросервисами и брокером сообщений (Kafka/RabbitMQ), если распределенные 2PC-транзакции недоступны?",
+        "hint": "Вспомните паттерны Transactional Outbox, Saga (хореография/оркестрация) и идемпотентность консьюмеров."
+      }
+    ]
+  },
+  "session_meta": {
+    "last_updated": null,
+    "total_turns": 0
+  }
+}
