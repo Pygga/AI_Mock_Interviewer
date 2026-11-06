@@ -1,16 +1,25 @@
 {
   "candidate": {
-    "name": "Виктор",
+    "name": "Кандидат",
     "target_role": "Python Developer (Middle)",
-    "skills": ["Python", "SQL", "Алгоритмы", "FastAPI"]
+    "skills": [
+      "Python",
+      "SQL",
+      "Алгоритмы",
+      "FastAPI"
+    ]
   },
-  "completed_questions": {},
-  "pending_questions": [
-    {
-      "id": "gil_threading",
+  "completed_questions": {
+    "gil_threading": {
       "topic": "Python Core",
-      "question": "Как устроен GIL (Global Interpreter Lock) в CPython? В каких задачах он становится узким местом, а когда не влияет на производительность?"
-    },
+      "question": "Как устроен GIL (Global Interpreter Lock) в CPython? В каких задачах он становится узким местом, а когда не влияет на производительность?",
+      "user_answer": "GIL (Global Interpreter Lock) — это мьютекс в CPython, который запрещает одновременное выполнение байт-кода Python несколькими потоками одного процесса. Он становится узким местом в CPU-bound задачах (тяжелые вычисления), где потоки не дают прироста скорости. В I/O-bound задачах (сетевые запросы, ра",
+      "score": 8,
+      "feedback": "Ответ содержит основные моменты, но не полностью раскрыл возможности GIL",
+      "completed_at": "2026-10-16 00:28:44"
+    }
+  },
+  "pending_questions": [
     {
       "id": "sql_indexes_where_having",
       "topic": "Базы данных / SQL",
@@ -29,6 +38,6 @@
   ],
   "session_meta": {
     "total_questions": 4,
-    "last_updated": null
+    "last_updated": "2026-10-16 00:28:44"
   }
 }

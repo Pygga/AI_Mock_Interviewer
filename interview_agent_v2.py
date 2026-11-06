@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 """
-AI Mock Interviewer v2.0 (LangChain + File Memory + Custom Output CELL)
-Домашнее задание №2 по курсу «LLM-агенты: от первого запроса до HARNESS».
-
 Особенности реализации:
 1. Архитектура на LangChain LCEL (LangChain Expression Language).
 2. Долговременная память фактов (FileFactMemory): сохраняет профиль кандидата,
